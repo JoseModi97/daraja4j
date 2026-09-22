@@ -253,6 +253,8 @@ All modules listed above are implemented, tested, and **published**: `0.1.0` is 
 
 Issues and pull requests are welcome — see [PLAN.md](PLAN.md) for the module layout. Build everything with `mvn test` or `./gradlew test` from the repo root; `daraja4j-gradle-plugin` is a standalone Gradle build (`cd daraja4j-gradle-plugin && ./gradlew test`) since a Gradle plugin project can't sanely nest inside the reactor it builds.
 
+See [CHANGELOG.md](CHANGELOG.md) for release history.
+
 ## License
 
 MIT License. See [LICENSE](LICENSE) for details.
