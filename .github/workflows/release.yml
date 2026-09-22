@@ -15,6 +15,12 @@ on:
   push:
     tags:
       - "v*.*.*"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Dry run: build, sign, and run everything up to (but not including) the actual upload to Central."
+        type: boolean
+        default: true
 
 jobs:
   publish:
@@ -35,6 +41,7 @@ jobs:
           gpg-passphrase: GPG_PASSPHRASE
 
       - name: Verify tag matches the reactor's project version
+        if: github.event_name == 'push'
         run: |
           TAG_VERSION="${GITHUB_REF_NAME#v}"
           POM_VERSION=$(mvn -q help:evaluate -Dexpression=project.version -DforceStdout)
@@ -46,7 +53,14 @@ jobs:
       - name: Run the full test suite before publishing anything
         run: mvn -B verify
 
+      - name: "Dry run: build and sign every module (stops before the deploy phase, so nothing is uploaded to Central)"
+        if: github.event_name == 'workflow_dispatch' && inputs.dry_run
+        run: mvn -B -Prelease -DskipTests verify
+        env:
+          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+
       - name: Build, sign, and publish every module
+        if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && !inputs.dry_run)
         run: mvn -B -Prelease -DskipTests deploy
         env:
           CENTRAL_USERNAME: ${{ secrets.CENTRAL_USERNAME }}
