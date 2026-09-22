@@ -1,5 +1,9 @@
 # daraja4j
 
+[![CI](https://github.com/JoseModi97/daraja4j/actions/workflows/ci.yml/badge.svg)](https://github.com/JoseModi97/daraja4j/actions/workflows/ci.yml)
+[![Maven Central](https://img.shields.io/maven-central/v/io.github.josemodi97/daraja4j-core.svg?label=Maven%20Central)](https://central.sonatype.com/artifact/io.github.josemodi97/daraja4j-core)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 daraja4j is a dependency-free Java SDK for the **Safaricom Daraja M-Pesa API**: OAuth access-token management, M-Pesa Express (STK Push), C2B, B2C, B2B, B2Pochi, transaction reversal, transaction status, account balance, the Pull API, and M-Pesa Ratiba standing orders — with a plain, framework-agnostic Java API that drops into Spring Boot, Jakarta EE, Quarkus, Micronaut, plain servlets, or a bare `public static void main`.
 
 It is an independent, community-built SDK. It is not produced, endorsed, or supported by Safaricom or M-Pesa.
@@ -26,8 +30,6 @@ It is an independent, community-built SDK. It is not produced, endorsed, or supp
 | Module system | Works on the classpath (Java 8+) and as a real named module on the module path (Java 9+) |
 
 ## Installation
-
-[![Maven Central](https://img.shields.io/maven-central/v/io.github.josemodi97/daraja4j-core.svg?label=Maven%20Central)](https://central.sonatype.com/artifact/io.github.josemodi97/daraja4j-core)
 
 **Live on Maven Central** — `0.1.0` is published and resolvable with no extra repository configuration.
 
