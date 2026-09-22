@@ -27,6 +27,10 @@ It is an independent, community-built SDK. It is not produced, endorsed, or supp
 
 ## Installation
 
+[![Maven Central](https://img.shields.io/maven-central/v/io.github.josemodi97/daraja4j-core.svg?label=Maven%20Central)](https://central.sonatype.com/artifact/io.github.josemodi97/daraja4j-core)
+
+**Live on Maven Central** — `0.1.0` is published and resolvable with no extra repository configuration.
+
 ### Maven
 
 ```xml
@@ -48,6 +52,10 @@ implementation("io.github.josemodi97:daraja4j-core:0.1.0")
 ```groovy
 implementation 'io.github.josemodi97:daraja4j-core:0.1.0'
 ```
+
+Javadoc: [javadoc.io/doc/io.github.josemodi97/daraja4j-core](https://javadoc.io/doc/io.github.josemodi97/daraja4j-core/0.1.0/index.html)
+
+The `daraja4j-gradle-plugin` project-scaffolding plugin is uploaded to the Gradle Plugin Portal but pending its first-time manual ID review — see [Project scaffolding](#project-scaffolding-maven--gradle-plugins) below.
 
 Building from source instead? `mvn install` / `./gradlew publishToMavenLocal` from a clone of this repo installs to your local repository. See [PLAN.md](PLAN.md) for the release process.
 
@@ -239,7 +247,7 @@ Full Javadoc: `https://javadoc.io/doc/io.github.josemodi97/daraja4j-core` (popul
 
 ## Roadmap
 
-All modules listed above are implemented and tested — with both a real Maven and a real Gradle build, `daraja4j-core` shipping as a genuine multi-release JPMS module, and GraalVM native-image wired for the CLI. What's left is mostly not code: Maven Central publishing itself (needs real Sonatype credentials) and richer init scaffolding beyond a single STK-callback example. See [PLAN.md](PLAN.md) for the full architecture and what's actually left.
+All modules listed above are implemented, tested, and **published**: `0.1.0` is live on Maven Central, with both a real Maven and a real Gradle build, `daraja4j-core` shipping as a genuine multi-release JPMS module, and GraalVM native-image wired for the CLI. What's left: `daraja4j-gradle-plugin` is uploaded to the Gradle Plugin Portal and awaiting its first-time manual ID review, and richer init scaffolding beyond a single STK-callback example. See [PLAN.md](PLAN.md) for the full architecture and what's actually left.
 
 ## Contributing
 

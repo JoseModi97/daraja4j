@@ -15,7 +15,7 @@ package namespace, and API design.
 | `daraja4j-spring-boot3-starter` | ✅ **Implemented** | Same, for Spring Boot 3.x (Jakarta namespace, Java 17 floor). |
 | `daraja4j-cli` | ✅ **Implemented** | `stk-push`, `status`, `b2c`, `reverse`, `balance`, `parse-callback` subcommands (picocli), distributed as a runnable fat jar (Gradle Shadow / Maven Shade) and a GraalVM native-image binary. |
 | `daraja4j-maven-plugin` | ✅ **Implemented** | `mvn io.github.josemodi97:daraja4j-maven-plugin:init` — auto-detects your framework and scaffolds a working STK-callback example, not just a placeholder properties file. |
-| `daraja4j-gradle-plugin` | ✅ **Implemented** | `./gradlew daraja4jInit` — the same auto-detecting scaffolding, as a standalone-built Gradle plugin. Not yet submitted to the Gradle Plugin Portal (§6b — new plugin IDs need a first-time manual review before `plugins { id(...) }` resolves publicly). |
+| `daraja4j-gradle-plugin` | ✅ Implemented, ⏳ uploaded, pending approval | `./gradlew daraja4jInit` — the same auto-detecting scaffolding, as a standalone-built Gradle plugin. Uploaded to the Gradle Plugin Portal for `0.1.0`; new plugin IDs get a first-time manual review by Gradle before `plugins { id(...) }` resolves publicly (§6b). |
 | `daraja4j-bom` | ✅ **Implemented** | Bill-of-materials (`java-platform` / `<packaging>pom</packaging>`) pinning matching versions of every library module. |
 
 Why core first: every other module is a thin adapter around it. Shipping a
@@ -32,10 +32,15 @@ closely but has not been executed in this environment (no `mvn` binary
 available here) — run `mvn test` from a machine with Maven installed before
 relying on it for a release.
 
-**Not yet done** — real next steps, not filler: Maven Central publishing
-itself (§6, needs real Sonatype credentials), the Gradle Plugin Portal
-submission (§6b, needs a Portal account), and running the Maven side of the
-build for the first time on a machine with `mvn` installed.
+**Published**: `0.1.0` is live on Maven Central (verified: every module
+resolvable from `repo1.maven.org`, javadoc served at javadoc.io) and
+uploaded to the Gradle Plugin Portal (§6b) - the latter is a brand-new
+plugin ID, so it's in the Portal's first-time manual review queue before
+`plugins { id(...) }` resolves publicly.
+
+**Not yet done**: running the Maven side of the build for the first time
+on a machine with `mvn` installed outside of CI (CI itself has proven it
+via GitHub Actions, but it's never been run on a local dev machine).
 
 ## 2. Package & artifact identity
 
