@@ -1,0 +1,325 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  gradle-build:
+    name: Gradle build (JDK ${{ matrix.java }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # daraja4j-spring-boot3-starter compiles at --release 17 (Spring
+        # Boot 3 itself requires Java 17+), which needs a host JDK >= 17 to
+        # cross-compile at all - so the full-reactor matrix starts at 17.
+        # The Java 8 floor for the other modules is proven separately by the
+        # jdk8-runtime-smoke-test job below, not by this matrix.
+        java: [17, 21]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ matrix.java }}
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Build and test every module
+        run: ./gradlew build --console=plain
+
+  gradle-plugin-build:
+    name: Gradle plugin build (standalone)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: maven
+      - name: Install the main reactor to the local Maven repo
+        # daraja4j-gradle-plugin is a separate, standalone Gradle build (see
+        # PLAN.md SS5) - its test suite compile-verifies generated examples
+        # against daraja4j-core/-servlet/-jakarta and both Spring Boot
+        # starters, resolved from mavenLocal since this job's perspective
+        # has no other way to see modules built by the (separate) root
+        # Maven/Gradle reactor.
+        run: mvn -B -DskipTests install
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Build and test daraja4j-gradle-plugin
+        working-directory: daraja4j-gradle-plugin
+        run: ./gradlew build --console=plain
+
+  maven-build:
+    name: Maven build (JDK ${{ matrix.java }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # Same Java 17 floor as gradle-build, for the same reason
+        # (daraja4j-spring-boot3-starter's maven.compiler.release=17).
+        java: [17, 21]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ matrix.java }}
+          cache: maven
+      - name: Build and test every module
+        run: mvn -B verify
+
+  native-image-build:
+    name: GraalVM native-image build (CLI)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: graalvm/setup-graalvm@v1
+        with:
+          java-version: "21"
+          distribution: "graalvm-community"
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Build the native binary
+        run: ./gradlew :daraja4j-cli:nativeCompile --console=plain
+      - name: Smoke-test the real binary
+        run: |
+          BIN=daraja4j-cli/build/native/nativeCompile/daraja4j
+          echo '{}' | "$BIN" parse-callback --type stk || true
+          "$BIN" --help | tee /tmp/native-out.txt
+          grep -q "stk-push" /tmp/native-out.txt
+
+  jdk8-runtime-smoke-test:
+    name: Java 8 runtime smoke test
+    runs-on: ubuntu-latest
+    needs: gradle-build
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Build the jar (release 8 bytecode)
+        run: ./gradlew :daraja4j-core:jar --console=plain
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 8
+      - name: Run a smoke test directly on a Java 8 JVM
+        run: |
+          mkdir -p /tmp/smoke
+          cat > /tmp/smoke/Smoke.java <<'EOF'
+          import com.sun.net.httpserver.HttpServer;
+          import io.github.josemodi97.daraja4j.Daraja4jClient;
+          import io.github.josemodi97.daraja4j.Daraja4jConfig;
+          import io.github.josemodi97.daraja4j.model.StkPushRequest;
+          import io.github.josemodi97.daraja4j.model.StkPushResult;
+          import java.net.InetSocketAddress;
+          import java.nio.charset.StandardCharsets;
+          import java.util.concurrent.atomic.AtomicReference;
+
+          public class Smoke {
+              public static void main(String[] args) throws Exception {
+                  // Java 8 has no concept of multi-release jars at all, so it can
+                  // only ever see the base (HttpURLConnection) entries - this is
+                  // the real proof that the base variant alone is fully
+                  // functional on its own, not just present in the jar.
+                  if (!System.getProperty("java.version").startsWith("1.8")) {
+                      throw new AssertionError("This job is meant to run on a real Java 8 JVM, got: " + System.getProperty("java.version"));
+                  }
+
+                  AtomicReference<String> capturedUserAgent = new AtomicReference<>("<none>");
+                  HttpServer server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
+                  server.createContext("/oauth/v1/generate", exchange -> {
+                      capturedUserAgent.set(exchange.getRequestHeaders().getFirst("User-Agent"));
+                      byte[] body = "{\"access_token\":\"tok\",\"expires_in\":\"3599\"}".getBytes(StandardCharsets.UTF_8);
+                      exchange.sendResponseHeaders(200, body.length);
+                      exchange.getResponseBody().write(body);
+                      exchange.close();
+                  });
+                  server.createContext("/mpesa/stkpush/v1/processrequest", exchange -> {
+                      byte[] body = ("{\"MerchantRequestID\":\"1\",\"CheckoutRequestID\":\"ws_CO_1\","
+                              + "\"ResponseCode\":\"0\",\"ResponseDescription\":\"OK\",\"CustomerMessage\":\"OK\"}")
+                              .getBytes(StandardCharsets.UTF_8);
+                      exchange.sendResponseHeaders(200, body.length);
+                      exchange.getResponseBody().write(body);
+                      exchange.close();
+                  });
+                  server.start();
+                  try {
+                      String url = "http://127.0.0.1:" + server.getAddress().getPort();
+                      Daraja4jClient client = new Daraja4jClient(Daraja4jConfig.builder()
+                              .consumerKey("KEY").consumerSecret("SECRET").baseUrl(url)
+                              .defaultShortcode("174379").defaultPasskey("PASSKEY")
+                              .defaultCallbackUrl("https://example.com/callback").build());
+                      StkPushResult result = client.stkPush(StkPushRequest.builder()
+                              .amount(1).partyA("254708374149").accountReference("INV-1").build());
+                      if (!result.isAccepted() || result.getCheckoutRequestId() == null || result.getCheckoutRequestId().isEmpty()) {
+                          throw new AssertionError("Expected an accepted STK push result with a CheckoutRequestID");
+                      }
+                      String userAgent = capturedUserAgent.get();
+                      if (userAgent == null || !userAgent.startsWith("Java/")) {
+                          throw new AssertionError("Expected the HttpURLConnection base variant's default User-Agent (Java/...), got: " + userAgent);
+                      }
+                      System.out.println("Confirmed base HttpURLConnection variant handled the request (User-Agent: " + userAgent + ")");
+                  } finally {
+                      server.stop(0);
+                  }
+
+                  System.out.println("daraja4j core runs correctly on: " + System.getProperty("java.version"));
+              }
+          }
+          EOF
+          JAR=$(find daraja4j-core/build/libs -name 'daraja4j-core-*.jar' ! -name '*-sources.jar' ! -name '*-javadoc.jar')
+          javac -cp "$JAR" -d /tmp/smoke /tmp/smoke/Smoke.java
+          java -cp "$JAR:/tmp/smoke" Smoke
+
+  mrjar-smoke-test:
+    name: Multi-release jar smoke test (JPMS + HttpClient variant)
+    runs-on: ubuntu-latest
+    needs: gradle-build
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Build the multi-release jar
+        run: ./gradlew :daraja4j-core:jar --console=plain
+      - name: Validate multi-release API consistency
+        run: |
+          JAR=$(find daraja4j-core/build/libs -name 'daraja4j-core-*.jar' ! -name '*-sources.jar' ! -name '*-javadoc.jar')
+          jar --validate --file "$JAR"
+      - name: Describe the module (proves the descriptor is well-formed)
+        run: |
+          JAR=$(find daraja4j-core/build/libs -name 'daraja4j-core-*.jar' ! -name '*-sources.jar' ! -name '*-javadoc.jar')
+          jar --file="$JAR" --describe-module --release 9 | tee /tmp/module-descriptor.txt
+          grep -q "^exports io.github.josemodi97.daraja4j$" /tmp/module-descriptor.txt
+          grep -q "^exports io.github.josemodi97.daraja4j.model$" /tmp/module-descriptor.txt
+          grep -q "^exports io.github.josemodi97.daraja4j.exception$" /tmp/module-descriptor.txt
+          grep -q "^exports io.github.josemodi97.daraja4j.util$" /tmp/module-descriptor.txt
+          # .internal must stay encapsulated:
+          if grep -q "internal" /tmp/module-descriptor.txt; then
+            echo "internal package leaked into the module descriptor" >&2
+            exit 1
+          fi
+      - name: Run on the real module path (not just the classpath)
+        run: |
+          mkdir -p /tmp/module-smoke
+          JAR=$(find daraja4j-core/build/libs -name 'daraja4j-core-*.jar' ! -name '*-sources.jar' ! -name '*-javadoc.jar')
+          cat > /tmp/module-smoke/ModuleSmoke.java <<'EOF'
+          import com.sun.net.httpserver.HttpServer;
+          import io.github.josemodi97.daraja4j.Daraja4jClient;
+          import io.github.josemodi97.daraja4j.Daraja4jConfig;
+          import io.github.josemodi97.daraja4j.model.StkPushRequest;
+          import io.github.josemodi97.daraja4j.model.StkPushResult;
+          import java.net.InetSocketAddress;
+          import java.nio.charset.StandardCharsets;
+
+          public class ModuleSmoke {
+              public static void main(String[] args) throws Exception {
+                  Module coreModule = Daraja4jClient.class.getModule();
+                  if (!coreModule.isNamed()) {
+                      throw new AssertionError("Expected daraja4j-core to be a NAMED module on the module path");
+                  }
+                  System.out.println("core module name: " + coreModule.getName());
+
+                  HttpServer server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
+                  server.createContext("/oauth/v1/generate", exchange -> {
+                      byte[] body = "{\"access_token\":\"tok\",\"expires_in\":\"3599\"}".getBytes(StandardCharsets.UTF_8);
+                      exchange.sendResponseHeaders(200, body.length);
+                      exchange.getResponseBody().write(body);
+                      exchange.close();
+                  });
+                  server.createContext("/mpesa/stkpush/v1/processrequest", exchange -> {
+                      byte[] body = ("{\"MerchantRequestID\":\"1\",\"CheckoutRequestID\":\"ws_CO_1\","
+                              + "\"ResponseCode\":\"0\",\"ResponseDescription\":\"OK\",\"CustomerMessage\":\"OK\"}")
+                              .getBytes(StandardCharsets.UTF_8);
+                      exchange.sendResponseHeaders(200, body.length);
+                      exchange.getResponseBody().write(body);
+                      exchange.close();
+                  });
+                  server.start();
+                  try {
+                      String url = "http://127.0.0.1:" + server.getAddress().getPort();
+                      Daraja4jClient client = new Daraja4jClient(Daraja4jConfig.builder()
+                              .consumerKey("KEY").consumerSecret("SECRET").baseUrl(url)
+                              .defaultShortcode("174379").defaultPasskey("PASSKEY")
+                              .defaultCallbackUrl("https://example.com/callback").build());
+                      StkPushResult result = client.stkPush(StkPushRequest.builder()
+                              .amount(1).partyA("254708374149").accountReference("INV-1").build());
+                      if (!result.isAccepted()) {
+                          throw new AssertionError("Expected an accepted STK push result");
+                      }
+                  } finally {
+                      server.stop(0);
+                  }
+                  System.out.println("Module-path smoke test passed on Java " + System.getProperty("java.version"));
+              }
+          }
+          EOF
+          javac -cp "$JAR" -d /tmp/module-smoke /tmp/module-smoke/ModuleSmoke.java
+          java --module-path "$JAR" --add-modules io.github.josemodi97.daraja4j.core -cp /tmp/module-smoke ModuleSmoke
+      - name: Confirm the HttpClient variant (not HttpURLConnection) is used on Java 11+
+        run: |
+          mkdir -p /tmp/http-variant-smoke
+          JAR=$(find daraja4j-core/build/libs -name 'daraja4j-core-*.jar' ! -name '*-sources.jar' ! -name '*-javadoc.jar')
+          cat > /tmp/http-variant-smoke/HttpVariantSmoke.java <<'EOF'
+          import com.sun.net.httpserver.HttpServer;
+          import io.github.josemodi97.daraja4j.Daraja4jClient;
+          import io.github.josemodi97.daraja4j.Daraja4jConfig;
+          import io.github.josemodi97.daraja4j.model.StkPushRequest;
+          import io.github.josemodi97.daraja4j.model.StkPushResult;
+          import java.net.InetSocketAddress;
+          import java.nio.charset.StandardCharsets;
+          import java.util.concurrent.atomic.AtomicReference;
+
+          public class HttpVariantSmoke {
+              public static void main(String[] args) throws Exception {
+                  AtomicReference<String> capturedUserAgent = new AtomicReference<>("<none>");
+                  HttpServer server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
+                  server.createContext("/oauth/v1/generate", exchange -> {
+                      capturedUserAgent.set(exchange.getRequestHeaders().getFirst("User-Agent"));
+                      byte[] body = "{\"access_token\":\"tok\",\"expires_in\":\"3599\"}".getBytes(StandardCharsets.UTF_8);
+                      exchange.sendResponseHeaders(200, body.length);
+                      exchange.getResponseBody().write(body);
+                      exchange.close();
+                  });
+                  server.createContext("/mpesa/stkpush/v1/processrequest", exchange -> {
+                      byte[] body = ("{\"MerchantRequestID\":\"1\",\"CheckoutRequestID\":\"ws_CO_1\","
+                              + "\"ResponseCode\":\"0\",\"ResponseDescription\":\"OK\",\"CustomerMessage\":\"OK\"}")
+                              .getBytes(StandardCharsets.UTF_8);
+                      exchange.sendResponseHeaders(200, body.length);
+                      exchange.getResponseBody().write(body);
+                      exchange.close();
+                  });
+                  server.start();
+                  try {
+                      String url = "http://127.0.0.1:" + server.getAddress().getPort();
+                      Daraja4jClient client = new Daraja4jClient(Daraja4jConfig.builder()
+                              .consumerKey("KEY").consumerSecret("SECRET").baseUrl(url)
+                              .defaultShortcode("174379").defaultPasskey("PASSKEY")
+                              .defaultCallbackUrl("https://example.com/callback").build());
+                      StkPushResult result = client.stkPush(StkPushRequest.builder()
+                              .amount(1).partyA("254708374149").accountReference("INV-1").build());
+                      if (!result.isAccepted()) {
+                          throw new AssertionError("Expected an accepted STK push result");
+                      }
+                      String userAgent = capturedUserAgent.get();
+                      System.out.println("Observed User-Agent: " + userAgent);
+                      if (userAgent == null || !userAgent.startsWith("Java-http-client/")) {
+                          throw new AssertionError("Expected the java.net.http.HttpClient variant's User-Agent (Java-http-client/...) on Java 11+, got: " + userAgent);
+                      }
+                      System.out.println("Confirmed the Java 11+ HttpClient variant handled the request.");
+                  } finally {
+                      server.stop(0);
+                  }
+              }
+          }
+          EOF
+          javac -cp "$JAR" -d /tmp/http-variant-smoke /tmp/http-variant-smoke/HttpVariantSmoke.java
+          java -cp "$JAR:/tmp/http-variant-smoke" HttpVariantSmoke

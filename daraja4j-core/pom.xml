@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>io.github.josemodi97</groupId>
+    <artifactId>daraja4j-parent</artifactId>
+    <version>0.1.0</version>
+  </parent>
+
+  <artifactId>daraja4j-core</artifactId>
+  <packaging>jar</packaging>
+
+  <name>daraja4j Core</name>
+  <description>
+    Dependency-free Java SDK core for the Safaricom Daraja M-Pesa API: OAuth
+    access-token management, STK Push, C2B, B2C, B2B, B2Pochi, transaction
+    reversal, transaction status, account balance, the Pull API, and M-Pesa
+    Ratiba standing orders. Zero runtime dependencies; Java 8+.
+  </description>
+  <url>https://github.com/JoseModi97/daraja4j</url>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <finalName>daraja4j-core-${project.version}</finalName>
+    <plugins>
+      <!--
+        Multi-release jar: a real module-info.java (Java 9+, src/main/java9)
+        and an HttpClient-based HttpTransport (Java 11+, src/main/java11),
+        layered on top of the Java-8-only base classes from src/main/java.
+        `multiReleaseOutput=true` makes each extra execution compile straight
+        into target/classes/META-INF/versions/<release>/, which the default
+        jar packaging then picks up automatically - no maven-jar-plugin
+        wiring needed beyond the Multi-Release manifest attribute below.
+      -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>default-compile</id>
+            <configuration>
+              <release>8</release>
+            </configuration>
+          </execution>
+          <execution>
+            <id>compile-java9</id>
+            <phase>compile</phase>
+            <goals>
+              <goal>compile</goal>
+            </goals>
+            <configuration>
+              <release>9</release>
+              <multiReleaseOutput>true</multiReleaseOutput>
+              <compileSourceRoots>
+                <compileSourceRoot>${project.basedir}/src/main/java9</compileSourceRoot>
+              </compileSourceRoots>
+            </configuration>
+          </execution>
+          <execution>
+            <id>compile-java11</id>
+            <phase>compile</phase>
+            <goals>
+              <goal>compile</goal>
+            </goals>
+            <configuration>
+              <release>11</release>
+              <multiReleaseOutput>true</multiReleaseOutput>
+              <compileSourceRoots>
+                <compileSourceRoot>${project.basedir}/src/main/java11</compileSourceRoot>
+              </compileSourceRoots>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <configuration>
+          <archive>
+            <manifestEntries>
+              <Multi-Release>true</Multi-Release>
+            </manifestEntries>
+          </archive>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-source-plugin</artifactId>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+      </plugin>
+    </plugins>
+  </build>
+</project>
