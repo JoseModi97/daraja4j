@@ -60,6 +60,14 @@ tasks.named<JavaCompile>("compileJava9Java") {
 tasks.named<JavaCompile>("compileJava11Java") {
     options.release.set(11)
     dependsOn(tasks.named("compileJava"))
+    // This source set now also carries an overriding module-info.java (see
+    // its javadoc for why) alongside HttpTransport.java, so it needs the
+    // same --patch-module treatment as the java9 source set above.
+    doFirst {
+        options.compilerArgs.addAll(listOf(
+            "--patch-module", "io.github.josemodi97.daraja4j.core=${sourceSets["main"].output.asPath}"
+        ))
+    }
 }
 
 tasks.jar {
