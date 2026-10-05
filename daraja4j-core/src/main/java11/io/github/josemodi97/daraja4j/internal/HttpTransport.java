@@ -26,7 +26,7 @@ import java.util.Base64;
 public final class HttpTransport {
 
     private static final int DEFAULT_TIMEOUT_MS = 30_000;
-    private static final String USER_AGENT = "daraja4j/0.2.0 (Java)";
+    private static final String USER_AGENT = "daraja4j/0.2.1 (Java; HttpClient)";
 
     private static final HttpClient CLIENT = HttpClient.newBuilder()
             .connectTimeout(Duration.ofMillis(DEFAULT_TIMEOUT_MS))

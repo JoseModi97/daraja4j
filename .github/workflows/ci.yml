@@ -161,8 +161,8 @@ jobs:
                           throw new AssertionError("Expected an accepted STK push result with a CheckoutRequestID");
                       }
                       String userAgent = capturedUserAgent.get();
-                      if (userAgent == null || !userAgent.startsWith("Java/")) {
-                          throw new AssertionError("Expected the HttpURLConnection base variant's default User-Agent (Java/...), got: " + userAgent);
+                      if (userAgent == null || !userAgent.contains("(Java; HttpURLConnection)")) {
+                          throw new AssertionError("Expected the HttpURLConnection base variant User-Agent (daraja4j/... (Java; HttpURLConnection)), got: " + userAgent);
                       }
                       System.out.println("Confirmed base HttpURLConnection variant handled the request (User-Agent: " + userAgent + ")");
                   } finally {
@@ -311,8 +311,8 @@ jobs:
                       }
                       String userAgent = capturedUserAgent.get();
                       System.out.println("Observed User-Agent: " + userAgent);
-                      if (userAgent == null || !userAgent.startsWith("Java-http-client/")) {
-                          throw new AssertionError("Expected the java.net.http.HttpClient variant's User-Agent (Java-http-client/...) on Java 11+, got: " + userAgent);
+                      if (userAgent == null || !userAgent.contains("(Java; HttpClient)")) {
+                          throw new AssertionError("Expected the java.net.http.HttpClient variant's User-Agent (daraja4j/... (Java; HttpClient)) on Java 11+, got: " + userAgent);
                       }
                       System.out.println("Confirmed the Java 11+ HttpClient variant handled the request.");
                   } finally {

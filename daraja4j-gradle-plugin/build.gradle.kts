@@ -10,7 +10,7 @@ group = "io.github.josemodi97"
 // below - line up with". Pass -PdarajaVersion=X.Y.Z to override; the
 // fallback must be kept in sync with the root reactor's current version
 // (see pom.xml) since the two are released independently.
-val darajaReactorVersion = project.findProperty("darajaVersion") as String? ?: "0.2.0"
+val darajaReactorVersion = project.findProperty("darajaVersion") as String? ?: "0.2.1"
 version = darajaReactorVersion
 
 description = "Gradle plugin for daraja4j: scaffolds a placeholder daraja4j.properties " +
