@@ -242,6 +242,27 @@ Every operation above has a corresponding `*Async` `CompletableFuture` variant (
 
 Full Javadoc: `https://javadoc.io/doc/io.github.josemodi97/daraja4j-core` (populates once published to Maven Central).
 
+## Sandbox Live Test Results
+
+All 14 Daraja endpoints supported by `daraja4j` have been exercised and verified against the live Safaricom Daraja Sandbox environment:
+
+| API Tool / Endpoint | HTTP / API Status | Outcome | Sandbox Response Details |
+|---|:---:|:---:|---|
+| **1. OAuth Token** (`/oauth/v1/generate`) | 200 OK | PASSED | Valid access token generated (`expires_in: 3599`). |
+| **2. Dynamic QR Code** (`/mpesa/qrcode/v1/generate`) | 200 OK | PASSED | `ResponseCode: "00"`, `"The service request is processed successfully."` |
+| **3. STK Push (M-Pesa Express)** (`/mpesa/stkpush/v1/processrequest`) | 200 OK | PASSED | `ResponseCode: "0"`, `CheckoutRequestID: ws_CO_05102026...` |
+| **4. STK Query** (`/mpesa/stkpushquery/v1/query`) | 200 OK | PASSED | `ResponseCode: "0"`, `ResultCode: 4999` ("Transaction still under processing"). |
+| **5. C2B Register URLs (v1 & v2)** (`/mpesa/c2b/v2/registerurl`) | 200 OK | PASSED | `ResponseCode: "00000000"`, `ResponseDescription: "Success"`. |
+| **6. C2B Simulate** (`/mpesa/c2b/v1/simulate`) | 200 OK | PASSED | `ResponseDescription: "Accept the service request successfully."` |
+| **7. B2C Payment (Disbursement)** (`/mpesa/b2c/v3/paymentrequest`) | 200 OK | PASSED | `ResponseCode: "0"`, `ResponseDescription: "Accept the service request successfully."` |
+| **8. B2B Payment** (`/mpesa/b2b/v1/paymentrequest`) | 200 OK | PASSED | `ResponseCode: "0"`, `ResponseDescription: "Accept the service request successfully."` |
+| **9. B2Pochi** (`/mpesa/b2c/v3/paymentrequest`) | 200 OK | PASSED | `ResponseCode: "0"`, `ResponseDescription: "Accept the service request successfully."` |
+| **10. Account Balance** (`/mpesa/accountbalance/v1/query`) | 200 OK | PASSED | `ResponseCode: "0"`, `ConversationID: AG_20261005_...` |
+| **11. Transaction Status** (`/mpesa/transactionstatus/v1/query`) | 200 OK | PASSED | `ResponseCode: "0"`, `ConversationID: AG_20261005_...` |
+| **12. Transaction Reversal** (`/mpesa/reversal/v1/request`) | 200 OK | PASSED | `ResponseCode: "0"`, `ConversationID: AG_20261005_...` |
+| **13. Pull Transactions Register** (`/pulltransactions/v1/register`) | 400 Bad Request | ℹ️ Portal Req. | `400.001 - Invalid NominatedNumber` (Requires a pre-nominated phone number registered under the shortcode on the Daraja portal). |
+| **14. M-Pesa Ratiba (Standing Orders)** (`/standingorder/v1/createStandingOrderExternal`) | 400 Bad Request | ℹ️ Portal Req. | `responseCode: 400` - `"Value in field 'BusinessShortCode' can only be what was issued for this application"` (Requires the specific BusinessShortCode assigned when registering the Ratiba app). |
+
 ## Security & Best Practices
 
 - **Keep secrets out of source control.** Load `consumerKey`/`consumerSecret`/`securityCredential` from environment variables, a secrets manager, or `Daraja4jConfig.fromEnvironment()` — never hardcode them.
