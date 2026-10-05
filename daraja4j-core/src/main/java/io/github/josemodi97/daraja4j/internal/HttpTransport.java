@@ -22,7 +22,7 @@ import java.util.Base64;
 public final class HttpTransport {
 
     private static final int DEFAULT_TIMEOUT_MS = 30_000;
-    private static final String USER_AGENT = "daraja4j/0.2.1 (Java; HttpURLConnection)";
+    private static final String USER_AGENT = "daraja4j/0.2.2 (Java; HttpURLConnection)";
 
     private HttpTransport() {
     }

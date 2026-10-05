@@ -6,7 +6,7 @@
 
   <groupId>io.github.josemodi97</groupId>
   <artifactId>daraja4j-parent</artifactId>
-  <version>0.2.1</version>
+  <version>0.2.2-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <name>daraja4j Parent</name>
