@@ -7,8 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.2] - 2026-10-05
+
 ### Fixed
-- The `User-Agent` header now names the HTTP transport in use: `daraja4j/<version> (Java; HttpURLConnection)` on Java 8 and `daraja4j/<version> (Java; HttpClient)` on Java 11+. In 0.2.0 both transports sent the same `User-Agent`, so the CI smoke tests could not tell which multi-release-jar variant handled a request, and they failed.
+- The `User-Agent` header now names the HTTP transport in use: `daraja4j/0.2.2 (Java; HttpURLConnection)` on Java 8 and `daraja4j/0.2.2 (Java; HttpClient)` on Java 11+. In 0.2.0 both transports sent the same `User-Agent`, so the CI smoke tests could not tell which multi-release-jar variant handled a request, and they failed.
+
+### Changed
+- Releases now run the full CI suite first and publish nothing if any job fails. Maven Central releases publish automatically, and the Gradle plugin is published only after the release is live on Maven Central.
 
 ## [0.2.0] - 2026-10-05
 
@@ -58,6 +63,7 @@ the request/result model classes) is still open to change before `1.0.0`.
 - Published to Maven Central under `io.github.josemodi97`.
 - Published to the Gradle Plugin Portal as `io.github.josemodi97.daraja4j`.
 
-[Unreleased]: https://github.com/JoseModi97/daraja4j/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/JoseModi97/daraja4j/compare/v0.2.2...HEAD
+[0.2.2]: https://github.com/JoseModi97/daraja4j/compare/v0.2.0...v0.2.2
 [0.2.0]: https://github.com/JoseModi97/daraja4j/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/JoseModi97/daraja4j/releases/tag/v0.1.0

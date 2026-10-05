@@ -31,7 +31,7 @@ It is an independent, community-built SDK. It is not produced, endorsed, or supp
 
 ## Installation
 
-**Live on Maven Central** — `0.2.0` is published and resolvable with no extra repository configuration.
+**Live on Maven Central** — `0.2.2` is published and resolvable with no extra repository configuration.
 
 ### Maven
 
@@ -39,23 +39,23 @@ It is an independent, community-built SDK. It is not produced, endorsed, or supp
 <dependency>
   <groupId>io.github.josemodi97</groupId>
   <artifactId>daraja4j-core</artifactId>
-  <version>0.2.0</version>
+  <version>0.2.2</version>
 </dependency>
 ```
 
 ### Gradle (Kotlin DSL)
 
 ```kotlin
-implementation("io.github.josemodi97:daraja4j-core:0.2.0")
+implementation("io.github.josemodi97:daraja4j-core:0.2.2")
 ```
 
 ### Gradle (Groovy DSL)
 
 ```groovy
-implementation 'io.github.josemodi97:daraja4j-core:0.2.0'
+implementation 'io.github.josemodi97:daraja4j-core:0.2.2'
 ```
 
-Javadoc: [javadoc.io/doc/io.github.josemodi97/daraja4j-core](https://javadoc.io/doc/io.github.josemodi97/daraja4j-core/0.2.0/index.html)
+Javadoc: [javadoc.io/doc/io.github.josemodi97/daraja4j-core](https://javadoc.io/doc/io.github.josemodi97/daraja4j-core/0.2.2/index.html)
 
 The `daraja4j-gradle-plugin` project-scaffolding plugin is uploaded to the Gradle Plugin Portal but pending its first-time manual ID review — see [Project scaffolding](#project-scaffolding-maven--gradle-plugins) below.
 
@@ -209,7 +209,7 @@ Every flag falls back to a `DARAJA4J_*` environment variable, so CI pipelines ca
 # Maven
 mvn io.github.josemodi97:daraja4j-maven-plugin:init
 
-# Gradle (after adding: plugins { id("io.github.josemodi97.daraja4j") version "0.2.0" })
+# Gradle (after adding: plugins { id("io.github.josemodi97.daraja4j") version "0.2.2" })
 ./gradlew daraja4jInit
 ```
 

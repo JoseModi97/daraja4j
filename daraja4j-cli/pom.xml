@@ -7,7 +7,7 @@
   <parent>
     <groupId>io.github.josemodi97</groupId>
     <artifactId>daraja4j-parent</artifactId>
-    <version>0.2.2-SNAPSHOT</version>
+    <version>0.2.2</version>
   </parent>
 
   <artifactId>daraja4j-cli</artifactId>
