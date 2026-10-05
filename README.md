@@ -31,7 +31,7 @@ It is an independent, community-built SDK. It is not produced, endorsed, or supp
 
 ## Installation
 
-**Live on Maven Central** — `0.1.0` is published and resolvable with no extra repository configuration.
+**Live on Maven Central** — `0.2.0` is published and resolvable with no extra repository configuration.
 
 ### Maven
 
@@ -39,23 +39,23 @@ It is an independent, community-built SDK. It is not produced, endorsed, or supp
 <dependency>
   <groupId>io.github.josemodi97</groupId>
   <artifactId>daraja4j-core</artifactId>
-  <version>0.1.0</version>
+  <version>0.2.0</version>
 </dependency>
 ```
 
 ### Gradle (Kotlin DSL)
 
 ```kotlin
-implementation("io.github.josemodi97:daraja4j-core:0.1.0")
+implementation("io.github.josemodi97:daraja4j-core:0.2.0")
 ```
 
 ### Gradle (Groovy DSL)
 
 ```groovy
-implementation 'io.github.josemodi97:daraja4j-core:0.1.0'
+implementation 'io.github.josemodi97:daraja4j-core:0.2.0'
 ```
 
-Javadoc: [javadoc.io/doc/io.github.josemodi97/daraja4j-core](https://javadoc.io/doc/io.github.josemodi97/daraja4j-core/0.1.0/index.html)
+Javadoc: [javadoc.io/doc/io.github.josemodi97/daraja4j-core](https://javadoc.io/doc/io.github.josemodi97/daraja4j-core/0.2.0/index.html)
 
 The `daraja4j-gradle-plugin` project-scaffolding plugin is uploaded to the Gradle Plugin Portal but pending its first-time manual ID review — see [Project scaffolding](#project-scaffolding-maven--gradle-plugins) below.
 
@@ -72,7 +72,7 @@ Building from source instead? `mvn install` / `./gradlew publishToMavenLocal` fr
 | `daraja4j-jakarta` | Tomcat 10+, Spring Boot 3, Jakarta EE 9+ | The same handlers, for the `jakarta.servlet` namespace. |
 | `daraja4j-spring-boot2-starter` | Spring Boot 2.x | Auto-configured `Daraja4jClient` bean from `daraja4j.*` properties, plus opt-in webhook endpoints + events. |
 | `daraja4j-spring-boot3-starter` | Spring Boot 3.x | Same, for the Jakarta namespace (Java 17+ floor). |
-| `daraja4j-cli` | Terminal / CI | `stk-push`, `status`, `b2c`, `reverse`, `balance`, `parse-callback` subcommands. |
+| `daraja4j-cli` | Terminal / CI | `stk-push`, `stk-query`, `status`, `b2c`, `reverse`, `balance`, `qr`, `parse-callback` subcommands. |
 
 ## Quickstart
 
@@ -186,6 +186,12 @@ java -jar daraja4j-cli.jar stk-push --consumer-key ... --consumer-secret ... --e
     --shortcode 174379 --passkey ... --callback-url https://yourapp.example.com/daraja4j/stk-callback \
     --amount 500 --phone 0712345678 --account-reference INV-0001
 
+# query the outcome of an STK push
+java -jar daraja4j-cli.jar stk-query --checkout-id ws_CO_191220191020363925
+
+# generate a Dynamic QR code and save it as a PNG image
+java -jar daraja4j-cli.jar qr --merchant-name "My Store" --ref-no INV-0001 --amount 500 --output qrcode.png
+
 # check transaction status
 java -jar daraja4j-cli.jar status --transaction-id NLJ7RT61SV
 
@@ -203,7 +209,7 @@ Every flag falls back to a `DARAJA4J_*` environment variable, so CI pipelines ca
 # Maven
 mvn io.github.josemodi97:daraja4j-maven-plugin:init
 
-# Gradle (after adding: plugins { id("io.github.josemodi97.daraja4j") version "0.1.0" })
+# Gradle (after adding: plugins { id("io.github.josemodi97.daraja4j") version "0.2.0" })
 ./gradlew daraja4jInit
 ```
 
@@ -215,6 +221,7 @@ Both auto-detect which framework you're using from your project's own dependenci
 |---|---|
 | `client.stkPush(StkPushRequest)` | Triggers an M-Pesa Express USSD PIN prompt |
 | `client.stkPushQuery(StkPushQueryRequest)` | Polls the outcome of a previous STK push |
+| `client.generateQrCode(QrCodeRequest)` | Generates an M-Pesa Dynamic QR code image |
 | `client.registerC2bUrls(RegisterC2bUrlsRequest)` | Registers validation/confirmation URLs for a shortcode |
 | `client.simulateC2b(C2bSimulateRequest)` | Simulates an inbound C2B payment — sandbox only |
 | `client.b2c(B2cRequest)` | Sends money to a registered M-Pesa customer |
@@ -231,7 +238,7 @@ Both auto-detect which framework you're using from your project's own dependenci
 | `StkCredentialsGenerator.password(...)` | Builds the STK Push `Password`/`Timestamp` pair |
 | `SecurityCredentialEncoder.encode(...)` | RSA-encrypts an Initiator password for `SecurityCredential` |
 
-Every operation above has a corresponding `*Async` `CompletableFuture` variant (`stkPushAsync`, `b2cAsync`, etc.).
+Every operation above has a corresponding `*Async` `CompletableFuture` variant (`stkPushAsync`, `b2cAsync`, `generateQrCodeAsync`, etc.).
 
 Full Javadoc: `https://javadoc.io/doc/io.github.josemodi97/daraja4j-core` (populates once published to Maven Central).
 

@@ -22,6 +22,7 @@ import java.util.Base64;
 public final class HttpTransport {
 
     private static final int DEFAULT_TIMEOUT_MS = 30_000;
+    private static final String USER_AGENT = "daraja4j/0.2.0 (Java)";
 
     private HttpTransport() {
     }
@@ -63,6 +64,7 @@ public final class HttpTransport {
             connection.setConnectTimeout(connectTimeoutMs > 0 ? connectTimeoutMs : DEFAULT_TIMEOUT_MS);
             connection.setReadTimeout(readTimeoutMs > 0 ? readTimeoutMs : DEFAULT_TIMEOUT_MS);
             connection.setInstanceFollowRedirects(true);
+            connection.setRequestProperty("User-Agent", USER_AGENT);
             connection.setRequestProperty("Accept", "application/json");
             connection.setRequestProperty("Authorization", authorizationHeader);
 

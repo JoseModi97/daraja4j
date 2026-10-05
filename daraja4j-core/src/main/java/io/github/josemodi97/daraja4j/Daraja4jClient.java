@@ -14,6 +14,8 @@ import io.github.josemodi97.daraja4j.model.PullTransactionsQueryRequest;
 import io.github.josemodi97.daraja4j.model.PullTransactionsQueryResult;
 import io.github.josemodi97.daraja4j.model.PullTransactionsRegisterRequest;
 import io.github.josemodi97.daraja4j.model.PullTransactionsRegisterResult;
+import io.github.josemodi97.daraja4j.model.QrCodeRequest;
+import io.github.josemodi97.daraja4j.model.QrCodeResult;
 import io.github.josemodi97.daraja4j.model.RegisterC2bUrlsRequest;
 import io.github.josemodi97.daraja4j.model.RegisterC2bUrlsResult;
 import io.github.josemodi97.daraja4j.model.ReversalRequest;
@@ -207,6 +209,17 @@ public final class Daraja4jClient {
     /** Asynchronous variant of {@link #createStandingOrder(StandingOrderRequest)}. */
     public CompletableFuture<StandingOrderResult> createStandingOrderAsync(StandingOrderRequest request) {
         return CompletableFuture.supplyAsync(() -> createStandingOrder(request));
+    }
+
+    /** Generates an M-Pesa Dynamic QR code for a specific amount, merchant, and transaction reference. */
+    public QrCodeResult generateQrCode(QrCodeRequest request) {
+        return gateway.execute("POST", "/mpesa/qrcode/v1/generate", request.toJson(gateway.getConfig()),
+                QrCodeResult::fromJson, null, null);
+    }
+
+    /** Asynchronous variant of {@link #generateQrCode(QrCodeRequest)}. */
+    public CompletableFuture<QrCodeResult> generateQrCodeAsync(QrCodeRequest request) {
+        return CompletableFuture.supplyAsync(() -> generateQrCode(request));
     }
 
     /** Forces a fresh OAuth token fetch, discarding any cached one. Most applications never need to call this. */

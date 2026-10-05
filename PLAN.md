@@ -8,12 +8,12 @@ package namespace, and API design.
 
 | Module | Status | Description |
 |---|---|---|
-| `daraja4j-core` | ✅ **Implemented** | OAuth token caching, all 13 Daraja operations, JSON serialization, callback parsers. Zero runtime dependencies. |
+| `daraja4j-core` | ✅ **Implemented** | OAuth token caching, all 14 Daraja operations (including Dynamic QR), JSON serialization, callback parsers. Zero runtime dependencies. |
 | `daraja4j-servlet` | ✅ **Implemented** | `javax.servlet` callback handlers (STK/Result/C2B), for Tomcat 8/9, Spring Boot 2, older Java EE. |
 | `daraja4j-jakarta` | ✅ **Implemented** | `jakarta.servlet` callback handlers, for Tomcat 10+, Spring Boot 3, Jakarta EE 9+. |
 | `daraja4j-spring-boot2-starter` | ✅ **Implemented** | Auto-configured `Daraja4jClient` bean + `daraja4j.*` property binding + three opt-in webhook controllers/events, for Spring Boot 2.x. |
 | `daraja4j-spring-boot3-starter` | ✅ **Implemented** | Same, for Spring Boot 3.x (Jakarta namespace, Java 17 floor). |
-| `daraja4j-cli` | ✅ **Implemented** | `stk-push`, `status`, `b2c`, `reverse`, `balance`, `parse-callback` subcommands (picocli), distributed as a runnable fat jar (Gradle Shadow / Maven Shade) and a GraalVM native-image binary. |
+| `daraja4j-cli` | ✅ **Implemented** | `stk-push`, `stk-query`, `status`, `b2c`, `reverse`, `balance`, `qr`, `parse-callback` subcommands (picocli), distributed as a runnable fat jar (Gradle Shadow / Maven Shade) and a GraalVM native-image binary. |
 | `daraja4j-maven-plugin` | ✅ **Implemented** | `mvn io.github.josemodi97:daraja4j-maven-plugin:init` — auto-detects your framework and scaffolds a working STK-callback example, not just a placeholder properties file. |
 | `daraja4j-gradle-plugin` | ✅ Implemented, ⏳ uploaded, pending approval | `./gradlew daraja4jInit` — the same auto-detecting scaffolding, as a standalone-built Gradle plugin. Uploaded to the Gradle Plugin Portal for `0.1.0`; new plugin IDs get a first-time manual review by Gradle before `plugins { id(...) }` resolves publicly (§6b). |
 | `daraja4j-bom` | ✅ **Implemented** | Bill-of-materials (`java-platform` / `<packaging>pom</packaging>`) pinning matching versions of every library module. |

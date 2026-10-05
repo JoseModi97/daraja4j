@@ -14,8 +14,9 @@ import picocli.CommandLine.Command;
         mixinStandardHelpOptions = true,
         version = "daraja4j CLI",
         description = "Command-line companion to the daraja4j Java SDK.",
-        subcommands = {StkPushCommand.class, StatusCommand.class, B2cCommand.class,
-                ReversalCommand.class, BalanceCommand.class, ParseCallbackCommand.class})
+        subcommands = {StkPushCommand.class, StkQueryCommand.class, StatusCommand.class,
+                B2cCommand.class, ReversalCommand.class, BalanceCommand.class,
+                QrCommand.class, ParseCallbackCommand.class})
 public final class Daraja4jCli implements Runnable {
 
     @Override

@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-10-05
+
+### Added
+
+- Dynamic QR Code generation (`QrCodeRequest`, `QrCodeResult`, `QrTransactionType`, `Daraja4jClient.generateQrCode`, `generateQrCodeAsync`).
+- Base64 QR code PNG decoding helper (`QrCodeResult.toPngBytes()`).
+- New `daraja4j qr` CLI command with `--output <path>` flag to save generated PNG images directly to disk.
+- New `daraja4j stk-query` CLI command to query STK Push status by `checkoutRequestId`.
+
+### Fixed
+
+- Added explicit `User-Agent: daraja4j/0.2.0 (Java)` header across both Java 8 (`HttpURLConnection`) and Java 11 (`HttpClient`) transports to prevent Incapsula WAF 403 challenges on sensitive endpoints (e.g. B2C disbursements).
+
 ## [0.1.0] - 2026-09-22
 
 Initial release. `0.x` - the public API (`Daraja4jConfig`, `Daraja4jClient`,
@@ -42,5 +55,6 @@ the request/result model classes) is still open to change before `1.0.0`.
 - Published to Maven Central under `io.github.josemodi97`.
 - Published to the Gradle Plugin Portal as `io.github.josemodi97.daraja4j`.
 
-[Unreleased]: https://github.com/JoseModi97/daraja4j/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/JoseModi97/daraja4j/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/JoseModi97/daraja4j/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/JoseModi97/daraja4j/releases/tag/v0.1.0

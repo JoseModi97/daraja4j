@@ -7,6 +7,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
 import io.github.josemodi97.daraja4j.exception.Daraja4jApiException;
+import io.github.josemodi97.daraja4j.model.QrCodeRequest;
+import io.github.josemodi97.daraja4j.model.QrCodeResult;
+import io.github.josemodi97.daraja4j.model.QrTransactionType;
 import io.github.josemodi97.daraja4j.model.StkPushRequest;
 import io.github.josemodi97.daraja4j.model.StkPushResult;
 import java.io.IOException;
@@ -50,6 +53,8 @@ class Daraja4jClientLocalServerTest {
             respond(exchange, 200, "{\"access_token\":\"fake-token\",\"expires_in\":\"3599\"}");
         });
         server.createContext("/mpesa/stkpush/v1/processrequest", exchange -> respond(exchange, stkResponseStatus, stkResponseBody));
+        server.createContext("/mpesa/qrcode/v1/generate", exchange -> respond(exchange, 200,
+                "{\"ResponseCode\":\"00\",\"ResponseDescription\":\"The service request is processed successfully.\",\"RequestID\":\"req-123\",\"QRCode\":\"aGVsbG8=\"}"));
         server.start();
     }
 
@@ -174,5 +179,23 @@ class Daraja4jClientLocalServerTest {
         client.stkPush(sampleRequest());
 
         assertEquals(2, tokenRequests.get());
+    }
+
+    @Test
+    void generateQrCode_success_returnsParsedResult() {
+        Daraja4jClient client = newClient();
+        QrCodeResult result = client.generateQrCode(QrCodeRequest.builder()
+                .merchantName("Store")
+                .refNo("INV-1")
+                .amount(100)
+                .trxCode(QrTransactionType.PAYBILL)
+                .build());
+
+        assertTrue(result.isSuccess());
+        assertEquals("00", result.getResponseCode());
+        assertEquals("The service request is processed successfully.", result.getResponseDescription());
+        assertEquals("req-123", result.getRequestId());
+        assertEquals("aGVsbG8=", result.getQrCode());
+        assertEquals("hello", new String(result.toPngBytes(), StandardCharsets.UTF_8));
     }
 }
