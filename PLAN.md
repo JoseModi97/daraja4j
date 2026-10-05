@@ -171,9 +171,12 @@ production integration.
 4. Bump the version across every POM in one shot
    (`mvn versions:set -DnewVersion=X.Y.Z -DprocessAllModules`) and the
    matching `-PdarajaVersion` default in the Gradle build files.
-5. Tag `vX.Y.Z` — `release.yml` builds, signs, and uploads with
+5. Tag `vX.Y.Z` — `release.yml` first runs the full CI suite (`ci.yml`,
+   including the Java 8 and multi-release-jar smoke tests) and stops if any
+   job fails. Only then does it build, sign, and upload with
    `autoPublish=false`, so a human reviews the Portal UI before the final
-   publish click.
+   publish click, and finally publishes the Gradle plugin
+   (`release-gradle-plugin.yml`, see 6b).
 
 ### 6b. Publishing the Gradle plugin
 

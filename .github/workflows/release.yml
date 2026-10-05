@@ -1,10 +1,11 @@
 name: Release
 
-# Template workflow: publishes every module in the reactor (daraja4j-core,
-# -servlet, -jakarta, both Spring Boot starters, -cli, -bom,
-# -maven-plugin - daraja4j-gradle-plugin is a separate standalone build,
-# see its own publishing notes in PLAN.md) to Maven Central via the
-# Sonatype Central Publishing Portal when a `vX.Y.Z` tag is pushed.
+# Template workflow: when a `vX.Y.Z` tag is pushed, runs the full CI suite
+# (ci.yml) and, only if every CI job passes, publishes every module in the
+# reactor (daraja4j-core, -servlet, -jakarta, both Spring Boot starters,
+# -cli, -bom, -maven-plugin) to Maven Central via the Sonatype Central
+# Publishing Portal, then publishes the standalone daraja4j-gradle-plugin
+# build to the Gradle Plugin Portal (release-gradle-plugin.yml).
 #
 # Requires these repository secrets before this workflow can run for real
 # (see PLAN.md "Publishing to Maven Central" for how to obtain each one):
@@ -23,8 +24,16 @@ on:
         default: true
 
 jobs:
+  ci:
+    name: CI
+    # Runs the full CI suite (including the Java 8 and multi-release-jar
+    # smoke tests, which `mvn verify` below does not cover) against the
+    # tagged commit. Nothing is published unless every CI job passes.
+    uses: ./.github/workflows/ci.yml
+
   publish:
     name: Publish to Maven Central
+    needs: ci
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -66,3 +75,15 @@ jobs:
           CENTRAL_USERNAME: ${{ secrets.CENTRAL_USERNAME }}
           CENTRAL_PASSWORD: ${{ secrets.CENTRAL_PASSWORD }}
           GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+
+  publish-gradle-plugin:
+    name: Publish to the Gradle Plugin Portal
+    # Only after CI passes AND the Maven Central upload succeeds, so the
+    # plugin never goes out for a version whose library release failed.
+    # Skipped on dry runs.
+    needs: [ci, publish]
+    if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && !inputs.dry_run)
+    uses: ./.github/workflows/release-gradle-plugin.yml
+    with:
+      skip_ci: true # the ci job above already gated this run
+    secrets: inherit

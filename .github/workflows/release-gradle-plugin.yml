@@ -1,9 +1,12 @@
 name: Release Gradle Plugin
 
-# Template workflow: publishes daraja4j-gradle-plugin to the Gradle Plugin
-# Portal (plugins.gradle.org) when a `vX.Y.Z` tag is pushed - the same tag
-# release.yml uses for the Maven Central release, so both publish together
-# from one `git tag vX.Y.Z && git push --tags`.
+# Publishes daraja4j-gradle-plugin to the Gradle Plugin Portal
+# (plugins.gradle.org). It does not trigger on tag pushes by itself:
+# release.yml calls it on a `vX.Y.Z` tag, only after the full CI suite
+# passes and the Maven Central upload succeeds, so both releases go out
+# together and never for a commit that fails CI. It can also be run
+# manually (e.g. to retry a failed plugin publish), in which case it runs
+# the CI suite itself first.
 #
 # Requires these repository secrets before this workflow can run for real
 # (see PLAN.md "Publishing the Gradle plugin" for how to obtain them):
@@ -12,9 +15,18 @@ name: Release Gradle Plugin
 #   account and running the one-time website/CLI key-generation flow)
 
 on:
-  push:
-    tags:
-      - "v*.*.*"
+  workflow_call:
+    inputs:
+      version:
+        description: "Version to publish. Defaults to the reactor's pom.xml version (which release.yml has already checked matches the tag)."
+        type: string
+        required: false
+        default: ""
+      skip_ci:
+        description: "Set by release.yml, which has already run the CI suite."
+        type: boolean
+        required: false
+        default: false
   workflow_dispatch:
     inputs:
       version:
@@ -22,8 +34,17 @@ on:
         required: true
 
 jobs:
+  ci:
+    name: CI
+    if: ${{ !inputs.skip_ci }}
+    uses: ./.github/workflows/ci.yml
+
   publish:
     name: Publish to the Gradle Plugin Portal
+    needs: ci
+    # Runs when CI passed, or when CI was skipped because release.yml
+    # already ran it; never when CI failed or was cancelled.
+    if: ${{ !cancelled() && (needs.ci.result == 'success' || needs.ci.result == 'skipped') }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -44,14 +65,14 @@ jobs:
 
       - name: Extract version
         id: version
-        # workflow_dispatch has no tag (GITHUB_REF_NAME is the branch), so
-        # it uses the explicit input instead; a tag push derives it the
-        # usual way.
+        # An explicit input (manual run) wins; otherwise use the reactor's
+        # pom.xml version, which release.yml has already checked against
+        # the pushed tag.
         run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+          if [ -n "${{ inputs.version }}" ]; then
             echo "version=${{ inputs.version }}" >> "$GITHUB_OUTPUT"
           else
-            echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+            echo "version=$(mvn -q help:evaluate -Dexpression=project.version -DforceStdout)" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Build and test at the tagged version
