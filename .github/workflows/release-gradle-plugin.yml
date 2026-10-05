@@ -3,7 +3,7 @@ name: Release Gradle Plugin
 # Publishes daraja4j-gradle-plugin to the Gradle Plugin Portal
 # (plugins.gradle.org). It does not trigger on tag pushes by itself:
 # release.yml calls it on a `vX.Y.Z` tag, only after the full CI suite
-# passes and the Maven Central upload succeeds, so both releases go out
+# passes and the release is live on Maven Central, so both releases go out
 # together and never for a commit that fails CI. It can also be run
 # manually (e.g. to retry a failed plugin publish), in which case it runs
 # the CI suite itself first.

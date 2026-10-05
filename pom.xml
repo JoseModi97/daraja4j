@@ -176,7 +176,13 @@
             <extensions>true</extensions>
             <configuration>
               <publishingServerId>central</publishingServerId>
-              <autoPublish>false</autoPublish>
+              <!-- Publish automatically once validation passes, and block
+                   `mvn deploy` until Central reports the release as
+                   published, so release.yml only moves on to the Gradle
+                   plugin after the library is actually live. -->
+              <autoPublish>true</autoPublish>
+              <waitUntil>published</waitUntil>
+              <waitMaxTime>3600</waitMaxTime>
             </configuration>
           </plugin>
         </plugins>

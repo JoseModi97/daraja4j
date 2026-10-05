@@ -174,9 +174,10 @@ production integration.
 5. Tag `vX.Y.Z` — `release.yml` first runs the full CI suite (`ci.yml`,
    including the Java 8 and multi-release-jar smoke tests) and stops if any
    job fails. Only then does it build, sign, and upload with
-   `autoPublish=false`, so a human reviews the Portal UI before the final
-   publish click, and finally publishes the Gradle plugin
-   (`release-gradle-plugin.yml`, see 6b).
+   `autoPublish=true` and `waitUntil=published`, so the deploy step only
+   succeeds once the release is live on Maven Central. Only after that does
+   it publish the Gradle plugin (`release-gradle-plugin.yml`, see 6b), so
+   the plugin never goes out for a version that is not on Central.
 
 ### 6b. Publishing the Gradle plugin
 

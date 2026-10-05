@@ -35,6 +35,9 @@ jobs:
     name: Publish to Maven Central
     needs: ci
     runs-on: ubuntu-latest
+    # `mvn deploy` waits (up to waitMaxTime=3600s in pom.xml) for Central
+    # to report the release as published; leave headroom for the build.
+    timeout-minutes: 90
     steps:
       - uses: actions/checkout@v4
 
@@ -78,8 +81,9 @@ jobs:
 
   publish-gradle-plugin:
     name: Publish to the Gradle Plugin Portal
-    # Only after CI passes AND the Maven Central upload succeeds, so the
-    # plugin never goes out for a version whose library release failed.
+    # Only after CI passes AND the release is live on Maven Central (the
+    # publish job's deploy waits for that), so the plugin never goes out
+    # for a version that is not on Central.
     # Skipped on dry runs.
     needs: [ci, publish]
     if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && !inputs.dry_run)
